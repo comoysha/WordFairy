@@ -53,10 +53,10 @@ function initializeSidebar() {
   if (!sidebar) {
     sidebar = createSidebar();
     
-    // 加载样式
+    // 加载隔离样式
     const link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = chrome.runtime.getURL('styles/sidebar.css');
+    link.href = chrome.runtime.getURL('styles/sidebar-isolated.css');
     document.head.appendChild(link);
     
     // 初始化事件监听器
@@ -147,6 +147,7 @@ function initializeEventListeners() {
         return;
       }
 
+      // 显示正在提取词汇的状态，不设置自动消失
       statusMessage.textContent = '正在提取词汇...';
       statusMessage.style.color = 'blue';
 
@@ -155,11 +156,9 @@ function initializeEventListeners() {
           displayWordCategories(categories, wordCategoriesContainer);
           statusMessage.textContent = '词汇提取成功';
           statusMessage.style.color = 'green';
-          setTimeout(() => { statusMessage.textContent = ''; }, 2000);
         } else {
           statusMessage.textContent = '词汇提取失败';
           statusMessage.style.color = 'red';
-          setTimeout(() => { statusMessage.textContent = ''; }, 2000);
         }
       });
     });
@@ -251,6 +250,19 @@ function displayWordCategories(categories, container) {
             // 更新索引，实现循环
             currentIndex = (currentIndex + 1) % matchedHighlights.length;
             wordSpan.dataset.currentIndex = currentIndex.toString();
+
+            // 重置所有高亮元素的样式
+            const allHighlights = document.querySelectorAll(
+              '.wordFairy-highlight-person, .wordFairy-highlight-location, .wordFairy-highlight-time, .wordFairy-highlight-organization'
+            );
+            allHighlights.forEach(el => {
+              el.classList.add('wordFairy-highlight-dimmed');
+              el.classList.remove('wordFairy-highlight-focused');
+            });
+
+            // 设置当前点击词汇的高亮样式
+            matchedHighlights[currentIndex].classList.remove('wordFairy-highlight-dimmed');
+            matchedHighlights[currentIndex].classList.add('wordFairy-highlight-focused');
 
             // 滚动到目标位置
             matchedHighlights[currentIndex].scrollIntoView({
@@ -374,7 +386,9 @@ async function extractWords(apiKey, modelName) {
     return categoriesWithCount;
   } catch (error) {
     console.error('提取词汇失败:', error);
-    alert(`提取词汇失败: ${error.message}`);
+    const statusMessage = document.querySelector('#status-message');
+    statusMessage.textContent = `提取词汇失败: ${error.message}`;
+    statusMessage.style.color = 'red';
     return null;
   }
 }
@@ -481,6 +495,21 @@ function highlightAllWords(container, words, className) {
            parent.classList.contains('wordFairy-highlight-time') ||
            parent.classList.contains('wordFairy-highlight-organization'))) {
         return;
+      }
+      
+      // 跳过侧边栏内的节点
+      let isInsideSidebar = false;
+      let currentNode = parent;
+      while (currentNode) {
+        if (currentNode.classList && currentNode.classList.contains('wordfairy-sidebar')) {
+          isInsideSidebar = true;
+          break;
+        }
+        currentNode = currentNode.parentNode;
+      }
+      
+      if (isInsideSidebar) {
+        return; // 跳过侧边栏内的节点
       }
       
       // 对每个词汇进行处理

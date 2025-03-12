@@ -1,0 +1,272 @@
+/* 重置样式 - 用于隔离侧边栏样式，防止受到网页全局样式的影响 */
+.wordfairy-sidebar,
+.wordfairy-sidebar *,
+.wordfairy-sidebar *::before,
+.wordfairy-sidebar *::after {
+  all: initial;
+  box-sizing: border-box !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+  line-height: normal !important;
+  color: initial !important;
+}
+
+/* 侧边栏基础样式 */
+.wordfairy-sidebar {
+  position: fixed !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 320px !important;
+  height: 100vh !important;
+  background-color: white !important;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1) !important;
+  z-index: 2147483647 !important; /* 最高层级 */
+  transition: transform 0.3s ease, margin-left 0.3s ease !important;
+  overflow: hidden !important;
+  padding: 16px !important;
+  font-size: 16px !important;
+  display: block !important;
+}
+
+/* 当侧边栏显示时，调整页面内容 */
+body.wordfairy-sidebar-active {
+  margin-right: 320px !important;
+  transition: margin-right 0.3s ease !important;
+}
+
+.wordfairy-sidebar.hidden {
+  transform: translateX(100%) !important;
+}
+
+/* 容器样式 */
+.wordfairy-sidebar .container {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 标题样式 */
+.wordfairy-sidebar h1 {
+  font-size: 18px !important;
+  font-weight: bold !important;
+  margin: 0 0 8px 0 !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  text-align: center !important;
+  color: #4285f4 !important;
+}
+
+/* 按钮组样式 */
+.wordfairy-sidebar .button-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-bottom: 16px !important;
+}
+
+.wordfairy-sidebar .button-group button {
+  width: 100% !important;
+  padding: 8px 16px !important;
+  font-size: 14px !important;
+  background-color: #4285f4 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  text-align: center !important;
+  display: block !important;
+}
+
+.wordfairy-sidebar .button-group button:hover {
+  background-color: #3367d6 !important;
+}
+
+/* 模型和API密钥部分样式 */
+.wordfairy-sidebar .model-section,
+.wordfairy-sidebar .api-key-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  width: 100% !important;
+  margin-bottom: 16px !important;
+}
+
+.wordfairy-sidebar .model-section label,
+.wordfairy-sidebar .api-key-section label {
+  font-size: 14px !important;
+  color: #4b5563 !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+  font-weight: 500 !important;
+}
+
+.wordfairy-sidebar .model-input,
+.wordfairy-sidebar .api-key-input {
+  display: flex !important;
+  gap: 8px !important;
+  width: 100% !important;
+}
+
+.wordfairy-sidebar .model-input input,
+.wordfairy-sidebar .api-key-input input {
+  flex: 1 !important;
+  padding: 6px 8px !important;
+  font-size: 14px !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 4px !important;
+  background-color: white !important;
+  color: #111827 !important;
+}
+
+.wordfairy-sidebar .model-input button,
+.wordfairy-sidebar .api-key-input button {
+  padding: 6px 12px !important;
+  font-size: 14px !important;
+  background-color: #0f9d58 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+}
+
+.wordfairy-sidebar .model-input button:hover,
+.wordfairy-sidebar .api-key-input button:hover {
+  background-color: #0b8043 !important;
+}
+
+/* 状态消息样式 */
+.wordfairy-sidebar #status-message {
+  font-size: 14px !important;
+  min-height: 20px !important;
+  margin-top: 4px !important;
+  color: #4b5563 !important;
+}
+
+/* 词汇分类部分样式 */
+.wordfairy-sidebar .container {
+  height: 100% !important;
+  overflow-y: auto !important;
+}
+
+.wordfairy-sidebar .word-categories {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  border-top: 1px solid #e5e7eb !important;
+  padding-top: 16px !important;
+  width: 100% !important;
+  flex: 1 !important;
+}
+
+.wordfairy-sidebar .category {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  margin-bottom: 16px !important;
+}
+
+.wordfairy-sidebar .category:last-child {
+  margin-bottom: 0 !important;
+}
+
+.wordfairy-sidebar .category-title {
+  padding: 8px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  background-color: #f3f4f6 !important;
+  margin: 0 !important;
+}
+
+/* 词汇列表样式 */
+.wordfairy-sidebar .words-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 8px !important;
+  margin: 0 !important;
+}
+
+.wordfairy-sidebar .word {
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  display: inline-block !important;
+}
+
+/* 不同类别词汇的样式 */
+.wordfairy-sidebar .word.person {
+  background-color: #fce7f3 !important;
+  border: 1px solid rgba(219, 68, 55, 0.3) !important;
+  color: #9d174d !important;
+}
+
+.wordfairy-sidebar .word.location {
+  background-color: #dbeafe !important;
+  border: 1px solid rgba(66, 133, 244, 0.3) !important;
+  color: #1e40af !important;
+}
+
+.wordfairy-sidebar .word.time {
+  background-color: #d1fae5 !important;
+  border: 1px solid rgba(15, 157, 88, 0.3) !important;
+  color: #065f46 !important;
+}
+
+.wordfairy-sidebar .word.organization {
+  background-color: #fef3c7 !important;
+  border: 1px solid rgba(244, 180, 0, 0.3) !important;
+  color: #92400e !important;
+}
+
+/* 划过效果 */
+.wordfairy-sidebar .word:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 复制成功提示 */
+.copy-toast {
+  position: fixed !important;
+  bottom: 32px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background-color: rgba(0, 0, 0, 0.8) !important;
+  color: white !important;
+  padding: 8px 16px !important;
+  border-radius: 4px !important;
+  font-size: 14px !important;
+  z-index: 2147483646 !important;
+  animation: wordfairy-fadeInOut 2s ease !important;
+}
+
+@keyframes wordfairy-fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, 16px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  85% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -16px); }
+}
+
+/* 滚动条样式 */
+.wordfairy-sidebar::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.wordfairy-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1 !important;
+}
+
+.wordfairy-sidebar::-webkit-scrollbar-thumb {
+  background: #888 !important;
+  border-radius: 3px !important;
+}
+
+.wordfairy-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555 !important;
+}

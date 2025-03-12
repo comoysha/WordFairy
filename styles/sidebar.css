@@ -8,13 +8,19 @@
   background-color: white;
   box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
   z-index: 9999;
-  transition: transform 0.3s ease;
+  transition: transform 0.3s ease, margin-left 0.3s ease;
   overflow-y: auto;
   padding: 1rem;
 }
 
 .wordfairy-sidebar.hidden {
   transform: translateX(100%);
+}
+
+/* 当侧边栏显示时，调整页面内容 */
+body.wordfairy-sidebar-active {
+  transition: margin-right 0.3s ease;
+  margin-right: 320px;
 }
 
 /* 容器样式 */

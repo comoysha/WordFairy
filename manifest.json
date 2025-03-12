@@ -25,7 +25,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["styles/highlight.css", "styles/tailwind.css", "styles/sidebar.css", "styles/reader.css"],
+      "resources": ["styles/highlight.css", "styles/tailwind.css", "styles/sidebar.css", "styles/reader.css", "styles/sidebar-isolated.css"],
       "matches": ["<all_urls>"]
     }
   ],

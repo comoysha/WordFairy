@@ -35,6 +35,36 @@
   opacity: 0.8;
 }
 
+/* 降低透明度的样式 */
+.wordFairy-highlight-dimmed {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+/* 重点高亮的样式 */
+.wordFairy-highlight-focused {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  box-shadow: 0 0 3px 1px rgba(0, 0, 0, 0.2);
+  color: white;
+}
+
+.wordFairy-highlight-person.wordFairy-highlight-focused {
+  background-color: #db4437;
+}
+
+.wordFairy-highlight-location.wordFairy-highlight-focused {
+  background-color: #4285f4;
+}
+
+.wordFairy-highlight-time.wordFairy-highlight-focused {
+  background-color: #0f9d58;
+}
+
+.wordFairy-highlight-organization.wordFairy-highlight-focused {
+  background-color: #f4b400;
+}
+
 /* 高亮词汇的工具提示 */
 .wordFairy-tooltip {
   position: absolute;
