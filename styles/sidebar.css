@@ -94,6 +94,26 @@ body.wordfairy-sidebar-active .wordfairy-sidebar.hidden {
   background-color: #0b8043;
 }
 
+.wordfairy-sidebar .model-input {
+  display: flex;
+  gap: 5px;
+}
+
+.wordfairy-sidebar input[type="text"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.wordfairy-sidebar #save-model {
+  background-color: #0f9d58;
+}
+
+.wordfairy-sidebar #save-model:hover {
+  background-color: #0b8043;
+}
+
 .wordfairy-sidebar #status-message {
   margin-top: 5px;
   font-size: 12px;

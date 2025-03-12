@@ -4,10 +4,18 @@ function createSidebar() {
   sidebar.className = 'wordfairy-sidebar hidden';
   sidebar.innerHTML = `
     <div class="container">
-      <h1>WordFairy</h1>
+      <h1>词妆精灵</h1>
+      <h2>WordFairy</h1>
       <div class="button-group">
         <button id="extract-words">提取分类词汇</button>
-        <button id="toggle-highlight">应用/关闭高亮</button>
+        <button id="toggle-highlight">高亮开/关</button>
+      </div>
+      <div class="model-section">
+        <label for="model-name">模型选择:</label>
+        <div class="model-input">
+          <input type="text" id="model-name" placeholder="输入模型名称" value="google/gemini-2.0-flash-lite-001">
+          <button id="save-model">保存</button>
+        </div>
       </div>
       <div class="api-key-section">
         <label for="api-key">OpenRouter API Key:</label>
@@ -42,8 +50,11 @@ function initializeEventListeners() {
   const statusMessage = sidebar.querySelector('#status-message');
   const wordCategoriesContainer = sidebar.querySelector('#word-categories');
 
-  // 从存储中加载API密钥
-  chrome.storage.local.get(['openRouterApiKey'], function(result) {
+  // 从存储中加载模型名称和API密钥
+  chrome.storage.local.get(['modelName', 'openRouterApiKey'], function(result) {
+    if (result.modelName) {
+      document.getElementById('model-name').value = result.modelName;
+    }
     if (result.openRouterApiKey) {
       apiKeyInput.value = result.openRouterApiKey;
       statusMessage.textContent = 'API密钥已加载';
@@ -56,6 +67,25 @@ function initializeEventListeners() {
   chrome.storage.local.get(['wordCategories'], function(result) {
     if (result.wordCategories) {
       displayWordCategories(result.wordCategories, wordCategoriesContainer);
+    }
+  });
+
+  // 保存模型名称
+  const modelNameInput = sidebar.querySelector('#model-name');
+  const saveModelBtn = sidebar.querySelector('#save-model');
+
+  saveModelBtn.addEventListener('click', function() {
+    const modelName = modelNameInput.value.trim();
+    if (modelName) {
+      chrome.storage.local.set({modelName: modelName}, function() {
+        statusMessage.textContent = '模型名称已保存';
+        statusMessage.style.color = 'green';
+        setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+      });
+    } else {
+      statusMessage.textContent = '请输入有效的模型名称';
+      statusMessage.style.color = 'red';
+      setTimeout(() => { statusMessage.textContent = ''; }, 2000);
     }
   });
 
@@ -77,9 +107,17 @@ function initializeEventListeners() {
 
   // 提取分类词汇
   extractWordsBtn.addEventListener('click', function() {
-    chrome.storage.local.get(['openRouterApiKey'], function(result) {
+    chrome.storage.local.get(['openRouterApiKey', 'modelName'], function(result) {
       if (!result.openRouterApiKey) {
         statusMessage.textContent = '请先设置API密钥';
+        statusMessage.style.color = 'red';
+        setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+        return;
+      }
+
+      const modelName = result.modelName || document.getElementById('model-name').value.trim();
+      if (!modelName) {
+        statusMessage.textContent = '请先设置模型名称';
         statusMessage.style.color = 'red';
         setTimeout(() => { statusMessage.textContent = ''; }, 2000);
         return;
@@ -88,7 +126,7 @@ function initializeEventListeners() {
       statusMessage.textContent = '正在提取词汇...';
       statusMessage.style.color = 'blue';
 
-      extractWords(result.openRouterApiKey).then(categories => {
+      extractWords(result.openRouterApiKey, modelName).then(categories => {
         if (categories) {
           displayWordCategories(categories, wordCategoriesContainer);
           statusMessage.textContent = '词汇提取成功';
@@ -183,7 +221,7 @@ function displayWordCategories(categories, container) {
 initializeEventListeners();
 
 // 提取分类词汇
-async function extractWords(apiKey) {
+async function extractWords(apiKey, modelName) {
   // 获取页面内容
   const articleContent = document.body.innerText;
   
@@ -201,7 +239,7 @@ async function extractWords(apiKey) {
         'X-Title': 'WordFairy Chrome Extension'
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.0-flash-lite-001',
+        model: modelName,
         messages: [
           {
             role: 'user',
