@@ -20,12 +20,12 @@
     {
       "matches": ["<all_urls>"],
       "js": ["lib/readability.js", "lib/mark.js", "content.js"],
-      "css": ["styles/reader.css", "styles/highlight.css"]
+      "css": ["styles/reader.css", "styles/highlight.css", "styles/tailwind.css"]
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["styles/highlight.css", "styles/sidebar.css"],
+      "resources": ["styles/highlight.css", "styles/tailwind.css", "styles/sidebar.css", "styles/reader.css"],
       "matches": ["<all_urls>"]
     }
   ],

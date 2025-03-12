@@ -5,7 +5,6 @@ function createSidebar() {
   sidebar.innerHTML = `
     <div class="container">
       <h1>词妆精灵</h1>
-      <h2>WordFairy</h1>
       <div class="button-group">
         <button id="extract-words">提取分类词汇</button>
         <button id="toggle-highlight">高亮开/关</button>
@@ -32,14 +31,39 @@ function createSidebar() {
   return sidebar;
 }
 
-// 初始化侧边栏
-let sidebar = createSidebar();
+// 创建一个函数来清理之前的状态
+function cleanupPreviousState() {
+  // 清除存储的词汇分类数据
+  chrome.storage.local.remove(['wordCategories'], function() {
+    console.log('已清除之前的词汇分类数据');
+  });
+  
+  // 移除所有高亮
+  removeHighlights(document.body);
+}
 
-// 加载样式
-const link = document.createElement('link');
-link.rel = 'stylesheet';
-link.href = chrome.runtime.getURL('styles/sidebar.css');
-document.head.appendChild(link);
+// 在页面加载时清理之前的状态
+cleanupPreviousState();
+
+// 创建但不立即显示侧边栏
+let sidebar = null;
+
+// 延迟加载侧边栏，只在用户激活扩展时才创建
+function initializeSidebar() {
+  if (!sidebar) {
+    sidebar = createSidebar();
+    
+    // 加载样式
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = chrome.runtime.getURL('styles/sidebar.css');
+    document.head.appendChild(link);
+    
+    // 初始化事件监听器
+    initializeEventListeners();
+  }
+  return sidebar;
+}
 
 // 初始化事件监听
 function initializeEventListeners() {
@@ -150,18 +174,24 @@ function initializeEventListeners() {
 // 监听扩展图标点击事件
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'toggleSidebar') {
-    sidebar.classList.toggle('hidden');
-    document.body.classList.toggle('wordfairy-sidebar-active');
-    sendResponse({success: true});
+    try {
+      // 确保侧边栏已初始化
+      sidebar = initializeSidebar();
+      sidebar.classList.toggle('hidden');
+      document.body.classList.toggle('wordfairy-sidebar-active');
+      sendResponse({success: true});
+    } catch (error) {
+      console.error('Error toggling sidebar:', error);
+      sendResponse({success: false, error: error.message});
+    }
   }
+  return true; // 保持消息通道开放
 });
 
 // 显示分类词汇列表
 function displayWordCategories(categories, container) {
-  // 清空容器
   container.innerHTML = '';
-
-  // 定义类别的中文名称
+  
   const categoryNames = {
     person: '人名',
     location: '地名',
@@ -186,26 +216,48 @@ function displayWordCategories(categories, container) {
       const wordsDiv = document.createElement('div');
       wordsDiv.className = 'words-list';
 
-      // 添加词汇
-      categories[category].forEach(item => {
+      // 按词频排序并添加词汇
+      categories[category].sort((a, b) => b.count - a.count).forEach(item => {
         const wordSpan = document.createElement('span');
         wordSpan.className = `word ${category}`;
         wordSpan.textContent = `${item.word} (${item.count})`;
 
-        // 添加点击事件，复制词汇到剪贴板
+        // 存储词汇在页面中的位置索引
+        wordSpan.dataset.currentIndex = '0';
+        
+        // 添加点击事件
         wordSpan.addEventListener('click', () => {
+          // 复制词汇到剪贴板(只复制词汇本身，不包含计数)
           navigator.clipboard.writeText(item.word).then(() => {
             // 显示复制成功提示
-            const tooltip = document.createElement('div');
-            tooltip.className = 'copy-tooltip';
-            tooltip.textContent = '已复制到剪贴板';
-            document.body.appendChild(tooltip);
+            const toast = document.createElement('div');
+            toast.className = 'copy-toast';
+            toast.textContent = '复制成功';
+            document.body.appendChild(toast);
 
             // 2秒后移除提示
             setTimeout(() => {
-              document.body.removeChild(tooltip);
+              document.body.removeChild(toast);
             }, 2000);
           });
+
+          // 获取所有匹配的高亮元素
+          const highlights = document.querySelectorAll(`.wordFairy-highlight-${category}`);
+          const matchedHighlights = Array.from(highlights).filter(el => el.textContent === item.word);
+
+          if (matchedHighlights.length > 0) {
+            // 获取当前索引
+            let currentIndex = parseInt(wordSpan.dataset.currentIndex);
+            // 更新索引，实现循环
+            currentIndex = (currentIndex + 1) % matchedHighlights.length;
+            wordSpan.dataset.currentIndex = currentIndex.toString();
+
+            // 滚动到目标位置
+            matchedHighlights[currentIndex].scrollIntoView({
+              behavior: 'smooth',
+              block: 'center'
+            });
+          }
         });
 
         wordsDiv.appendChild(wordSpan);

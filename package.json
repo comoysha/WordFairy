@@ -1,0 +1,20 @@
+{
+  "name": "wordfairy2",
+  "version": "1.0.0",
+  "description": "一个 chrome 扩展，通过 readability.js 实现阅读器，然后通过 OpenRouter 的google/gemini-2.0-flash-lite-001 模型调接口把阅读器正文部分请求提取分类词汇表（包括人名、地名、时间、组织名），然后用 mark.js 实现不同分类词汇不同的高亮色。插件的弹框包含以下几个按钮：开启阅读器，提取分类词汇，应用/关闭高亮，设置 api key（存储在本地）",
+  "main": "background.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.0"
+  }
+}

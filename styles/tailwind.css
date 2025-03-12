@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .wordfairy-sidebar {
+    @apply fixed top-0 right-0 w-80 h-screen bg-gradient-to-br from-gray-50 to-white shadow-lg z-[10000] overflow-y-auto transition-all duration-300 font-sans text-gray-800;
+  }
+
+  .wordfairy-sidebar.hidden {
+    @apply translate-x-full;
+  }
+
+  .wordfairy-sidebar .container {
+    @apply p-4;
+  }
+
+  .wordfairy-sidebar h1 {
+    @apply text-2xl text-center text-primary font-bold mb-4;
+  }
+
+  .wordfairy-sidebar h2 {
+    @apply text-xl text-center text-primary-dark font-semibold mb-6;
+  }
+
+  .wordfairy-sidebar .button-group {
+    @apply flex flex-col gap-3 mb-6;
+  }
+
+  .wordfairy-sidebar button {
+    @apply px-4 py-2 rounded-lg bg-primary text-white font-medium transition-colors hover:bg-primary-dark focus:ring-2 focus:ring-primary/50 focus:outline-none;
+  }
+
+  .wordfairy-sidebar .model-section,
+  .wordfairy-sidebar .api-key-section {
+    @apply mb-6;
+  }
+
+  .wordfairy-sidebar label {
+    @apply block mb-2 font-semibold text-gray-700;
+  }
+
+  .wordfairy-sidebar .model-input,
+  .wordfairy-sidebar .api-key-input {
+    @apply flex gap-2;
+  }
+
+  .wordfairy-sidebar input[type="text"],
+  .wordfairy-sidebar input[type="password"] {
+    @apply flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+  }
+
+  .wordfairy-sidebar #save-model,
+  .wordfairy-sidebar #save-api-key {
+    @apply bg-success hover:bg-success-dark;
+  }
+
+  .wordfairy-sidebar #status-message {
+    @apply mt-2 text-sm h-4;
+  }
+
+  .wordfairy-sidebar .word-categories {
+    @apply max-h-[calc(100vh-200px)] overflow-y-auto border-t border-gray-200 pt-4;
+  }
+
+  .wordfairy-sidebar .category {
+    @apply mb-6 last:mb-0;
+  }
+
+  .wordfairy-sidebar .category-title {
+    @apply text-lg font-semibold mb-3;
+  }
+
+  .wordfairy-sidebar .category-title.person { @apply text-danger; }
+  .wordfairy-sidebar .category-title.location { @apply text-primary; }
+  .wordfairy-sidebar .category-title.time { @apply text-success; }
+  .wordfairy-sidebar .category-title.organization { @apply text-warning; }
+
+  .wordfairy-sidebar .words-list {
+    @apply flex flex-wrap gap-2;
+  }
+
+  .wordfairy-sidebar .word {
+    @apply px-3 py-1 rounded-full text-sm text-white cursor-pointer transition-opacity hover:opacity-80;
+  }
+
+  .wordfairy-sidebar .word.person { @apply bg-danger; }
+  .wordfairy-sidebar .word.location { @apply bg-primary; }
+  .wordfairy-sidebar .word.time { @apply bg-success; }
+  .wordfairy-sidebar .word.organization { @apply bg-warning; }
+
+  .copy-tooltip {
+    @apply fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-3 py-1.5 rounded text-sm z-[10001] animate-fade-in-out;
+  }
+}
