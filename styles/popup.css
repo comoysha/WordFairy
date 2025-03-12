@@ -1,0 +1,171 @@
+/* 弹出窗口样式 */
+body {
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
+  color: #333;
+}
+
+.container {
+  width: 480px;
+  padding: 15px;
+  height: 980px;
+  overflow-y: auto;
+}
+
+h1 {
+  text-align: center;
+  color: #4285f4;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 24px;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+button {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  background-color: #4285f4;
+  color: white;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #3367d6;
+}
+
+.api-key-section {
+  margin-bottom: 15px;
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+}
+
+.api-key-input {
+  display: flex;
+  gap: 5px;
+}
+
+input[type="password"] {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+#save-api-key {
+  background-color: #0f9d58;
+}
+
+#save-api-key:hover {
+  background-color: #0b8043;
+}
+
+#status-message {
+  margin-top: 5px;
+  font-size: 12px;
+  height: 15px;
+}
+
+.word-categories {
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+.category {
+  margin-bottom: 15px;
+}
+
+.category-title {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.category-title.person {
+  color: #db4437;
+}
+
+.category-title.location {
+  color: #4285f4;
+}
+
+.category-title.time {
+  color: #0f9d58;
+}
+
+.category-title.organization {
+  color: #f4b400;
+}
+
+.words-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.word {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.word:hover {
+  opacity: 0.8;
+}
+
+.word.person {
+  background-color: #db4437;
+}
+
+.word.location {
+  background-color: #4285f4;
+}
+
+.word.time {
+  background-color: #0f9d58;
+}
+
+.word.organization {
+  background-color: #f4b400;
+}
+
+/* 复制提示样式 */
+.copy-tooltip {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  z-index: 10000;
+  animation: fadeInOut 2s ease-in-out;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}

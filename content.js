@@ -1,0 +1,320 @@
+// 监听来自popup的消息
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === 'extractWords') {
+    extractWords(request.apiKey).then(result => {
+      sendResponse(result);
+    });
+    return true; // 异步响应需要返回true
+  } else if (request.action === 'toggleHighlight') {
+    const result = toggleHighlight();
+    sendResponse(result);
+  }
+});
+
+// 提取分类词汇
+async function extractWords(apiKey) {
+  // 获取页面内容
+  const articleContent = document.body.innerText;
+  
+  // 准备请求数据
+  const prompt = `请从以下文本中提取所有的人名、地名、时间和组织名，并按这些类别进行分类。返回一个JSON格式的对象，键为"person"、"location"、"time"、"organization"，值为对应类别的词汇数组。只返回JSON对象，不要有其他文字。\n\n文本内容：${articleContent}`;
+  
+  try {
+    // 调用OpenRouter API
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+        'HTTP-Referer': 'https://github.com/wordfairy-chrome-extension',
+        'X-Title': 'WordFairy Chrome Extension'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-lite-001',
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.3
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error?.message || '请求失败');
+    }
+    
+    // 解析API返回的结果
+    const content = data.choices[0].message.content;
+    let categories;
+    
+    try {
+      // 尝试解析JSON
+      categories = JSON.parse(content);
+    } catch (e) {
+      // 如果不是纯JSON，尝试从文本中提取JSON
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        categories = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('无法解析API返回的结果');
+      }
+    }
+    
+    // 统计每个词汇在文本中出现的次数
+    const categoriesWithCount = {};
+    
+    for (const category in categories) {
+      if (categories[category] && Array.isArray(categories[category])) {
+        // 创建词汇计数映射
+        const wordCountMap = {};
+        
+        // 对每个词汇进行计数
+        categories[category].forEach(word => {
+          if (word && word.trim()) {
+            const trimmedWord = word.trim();
+            // 如果词汇已存在，增加计数
+            if (wordCountMap[trimmedWord]) {
+              wordCountMap[trimmedWord].count++;
+            } else {
+              // 否则添加新词汇
+              wordCountMap[trimmedWord] = { word: trimmedWord, count: 1 };
+            }
+          }
+        });
+        
+        // 计算每个词汇在文本中的实际出现次数
+        Object.values(wordCountMap).forEach(item => {
+          const regex = new RegExp(item.word, 'gi');
+          const matches = articleContent.match(regex);
+          if (matches) {
+            item.count = matches.length;
+          }
+        });
+        
+        // 转换为带计数的词汇数组
+        categoriesWithCount[category] = Object.values(wordCountMap)
+          .map(item => ({ word: item.word, count: item.count }))
+          .sort((a, b) => b.count - a.count); // 按出现次数降序排序
+      } else {
+        categoriesWithCount[category] = [];
+      }
+    }
+    
+    // 保存分类词汇到存储中
+    chrome.storage.local.set({wordCategories: categoriesWithCount});
+    
+    // 高亮显示词汇
+    highlightWords(categoriesWithCount);
+    
+    return categoriesWithCount;
+  } catch (error) {
+    console.error('提取词汇失败:', error);
+    alert(`提取词汇失败: ${error.message}`);
+    return null;
+  }
+}
+
+// 高亮显示词汇
+function highlightWords(categories) {
+  console.log('highlightWords函数被调用，参数:', categories);
+  // 如果没有提供分类，从存储中获取
+  if (!categories) {
+    console.log('未提供分类参数，从存储中获取...');
+    try {
+      chrome.storage.local.get(['wordCategories'], function(result) {
+        try {
+          if (result.wordCategories) {
+            console.log('从存储中获取到分类词汇:', result.wordCategories);
+            applyHighlight(result.wordCategories);
+          } else {
+            console.warn('存储中没有分类词汇');
+            alert('没有可用的分类词汇，请先提取词汇');
+          }
+        } catch (error) {
+          console.error('处理存储中的分类词汇时出错:', error);
+          alert('处理分类词汇时出错，请查看控制台获取详细信息');
+        }
+      });
+    } catch (error) {
+      console.error('从存储中获取分类词汇时出错:', error);
+      alert('获取分类词汇时出错，请查看控制台获取详细信息');
+    }
+  } else {
+    console.log('直接使用提供的分类参数:', categories);
+    try {
+      applyHighlight(categories);
+    } catch (error) {
+      console.error('应用高亮时出错:', error);
+      alert('应用高亮时出错，请查看控制台获取详细信息');
+    }
+  }
+}
+
+// 应用高亮
+function applyHighlight(categories) {
+  console.log('开始应用高亮，分类数据:', categories);
+  
+  // 移除现有的高亮
+  removeHighlights(document.body);
+  console.log('已移除现有高亮');
+  
+  // 为每个类别分别应用高亮
+  Object.entries(categories).forEach(([category, words]) => {
+    if (words && words.length > 0) {
+      console.log(`开始处理分类 ${category}，包含 ${words.length} 个词汇`);
+      
+      // 过滤并整理词汇
+      const filteredWords = words
+        .filter(item => item && (typeof item === 'string' ? item.trim() : item.word && item.word.trim()))
+        .map(item => typeof item === 'string' ? item.trim() : item.word.trim());
+      
+      if (filteredWords.length > 0) {
+        // 根据类别选择高亮样式
+        const className = `wordFairy-highlight-${category}`;
+        
+        // 处理该类别的所有词汇
+        highlightAllWords(document.body, filteredWords, className);
+        console.log(`分类 ${category} 的高亮应用完成`);
+      }
+    }
+  });
+}
+
+// 移除所有高亮
+function removeHighlights(container) {
+  // 查找所有高亮元素
+  const highlights = container.querySelectorAll(
+    '.wordFairy-highlight-person, .wordFairy-highlight-location, .wordFairy-highlight-time, .wordFairy-highlight-organization'
+  );
+  
+  // 遍历并移除高亮
+  highlights.forEach(highlight => {
+    // 获取高亮元素的文本内容
+    const text = highlight.textContent;
+    // 创建文本节点替换高亮元素
+    const textNode = document.createTextNode(text);
+    // 用文本节点替换高亮元素
+    highlight.parentNode.replaceChild(textNode, highlight);
+  });
+}
+
+// 高亮所有词汇
+function highlightAllWords(container, words, className) {
+  console.log(`开始高亮 ${words.length} 个词汇，类别: ${className}`);
+  
+  // 递归处理所有文本节点
+  function processNode(node) {
+    // 如果是文本节点
+    if (node.nodeType === Node.TEXT_NODE) {
+      let text = node.nodeValue;
+      let parent = node.parentNode;
+      
+      // 跳过已经高亮的节点
+      if (parent.classList && 
+          (parent.classList.contains('wordFairy-highlight-person') ||
+           parent.classList.contains('wordFairy-highlight-location') ||
+           parent.classList.contains('wordFairy-highlight-time') ||
+           parent.classList.contains('wordFairy-highlight-organization'))) {
+        return;
+      }
+      
+      // 对每个词汇进行处理
+      for (const word of words) {
+        if (!word || word.length < 2) continue; // 跳过空词或过短的词
+        
+        // 创建不区分大小写的正则表达式
+        const regex = new RegExp(word, 'gi');
+        let match;
+        
+        // 查找所有匹配
+        if (match = regex.exec(text)) {
+          console.log(`在文本中找到词汇 "${word}"`);
+          
+          // 分割文本节点
+          const beforeText = text.substring(0, match.index);
+          const matchText = text.substring(match.index, match.index + word.length);
+          const afterText = text.substring(match.index + word.length);
+          
+          // 创建前部分文本节点
+          if (beforeText) {
+            parent.insertBefore(document.createTextNode(beforeText), node);
+          }
+          
+          // 创建高亮元素
+          const highlightEl = document.createElement('span');
+          highlightEl.className = className;
+          highlightEl.textContent = matchText;
+          parent.insertBefore(highlightEl, node);
+          
+          // 创建后部分文本节点
+          if (afterText) {
+            const afterNode = document.createTextNode(afterText);
+            parent.insertBefore(afterNode, node);
+            // 继续处理剩余文本
+            processNode(afterNode);
+          }
+          
+          // 移除原始节点
+          parent.removeChild(node);
+          return; // 处理完一个词后退出，避免处理同一节点多次
+        }
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // 如果是元素节点，递归处理其子节点
+      // 创建一个副本以避免在迭代过程中修改集合
+      const childNodes = Array.from(node.childNodes);
+      childNodes.forEach(child => processNode(child));
+    }
+  }
+  
+  // 开始处理容器内的所有节点
+  const childNodes = Array.from(container.childNodes);
+  childNodes.forEach(node => processNode(node));
+  
+  console.log(`完成高亮处理，类别: ${className}`);
+}
+
+// 切换高亮显示
+function toggleHighlight() {
+  console.log('切换高亮状态');
+  
+  // 检查是否已有高亮
+  const hasHighlights = document.body.querySelectorAll('.wordFairy-highlight-person, .wordFairy-highlight-location, .wordFairy-highlight-time, .wordFairy-highlight-organization').length > 0;
+  console.log('当前是否有高亮:', hasHighlights ? '是' : '否');
+  
+  if (hasHighlights) {
+    // 如果已有高亮，则移除
+    try {
+      console.log('开始移除所有高亮');
+      removeHighlights(document.body);
+      console.log('高亮已移除');
+      return {success: true, message: '高亮已关闭'};
+    } catch (error) {
+      console.error('移除高亮时出错:', error);
+      return {success: false, message: '移除高亮时出错'};
+    }
+  } else {
+    // 如果没有高亮，则应用高亮
+    try {
+      console.log('开始重新应用高亮');
+      // 从存储中获取分类词汇
+      chrome.storage.local.get(['wordCategories'], function(result) {
+        if (result.wordCategories) {
+          console.log('从存储中获取到分类词汇:', result.wordCategories);
+          applyHighlight(result.wordCategories);
+        } else {
+          console.warn('存储中没有分类词汇');
+          alert('没有可用的分类词汇，请先提取词汇');
+        }
+      });
+      return {success: true, message: '正在应用高亮'};
+    } catch (error) {
+      console.error('应用高亮时出错:', error);
+      return {success: false, message: '应用高亮时出错'};
+    }
+  }
+}
