@@ -5,7 +5,6 @@
   "description": "通过readability.js提取网页内容，使用OpenRouter API提取分类词汇并高亮显示",
   "permissions": ["activeTab", "storage", "scripting"],
   "action": {
-    "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icon16.png",
       "48": "images/icon48.png",
@@ -26,8 +25,11 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["styles/*"],
+      "resources": ["styles/highlight.css", "styles/sidebar.css"],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
 }

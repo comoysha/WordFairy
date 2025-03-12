@@ -1,15 +1,185 @@
-// 监听来自popup的消息
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === 'extractWords') {
-    extractWords(request.apiKey).then(result => {
-      sendResponse(result);
+// 创建侧边栏
+function createSidebar() {
+  const sidebar = document.createElement('div');
+  sidebar.className = 'wordfairy-sidebar hidden';
+  sidebar.innerHTML = `
+    <div class="container">
+      <h1>WordFairy</h1>
+      <div class="button-group">
+        <button id="extract-words">提取分类词汇</button>
+        <button id="toggle-highlight">应用/关闭高亮</button>
+      </div>
+      <div class="api-key-section">
+        <label for="api-key">OpenRouter API Key:</label>
+        <div class="api-key-input">
+          <input type="password" id="api-key" placeholder="输入您的API Key">
+          <button id="save-api-key">保存</button>
+        </div>
+        <div id="status-message"></div>
+      </div>
+      <div class="word-categories" id="word-categories"></div>
+    </div>
+  `;
+  document.body.appendChild(sidebar);
+  return sidebar;
+}
+
+// 初始化侧边栏
+let sidebar = createSidebar();
+
+// 加载样式
+const link = document.createElement('link');
+link.rel = 'stylesheet';
+link.href = chrome.runtime.getURL('styles/sidebar.css');
+document.head.appendChild(link);
+
+// 初始化事件监听
+function initializeEventListeners() {
+  const extractWordsBtn = sidebar.querySelector('#extract-words');
+  const toggleHighlightBtn = sidebar.querySelector('#toggle-highlight');
+  const apiKeyInput = sidebar.querySelector('#api-key');
+  const saveApiKeyBtn = sidebar.querySelector('#save-api-key');
+  const statusMessage = sidebar.querySelector('#status-message');
+  const wordCategoriesContainer = sidebar.querySelector('#word-categories');
+
+  // 从存储中加载API密钥
+  chrome.storage.local.get(['openRouterApiKey'], function(result) {
+    if (result.openRouterApiKey) {
+      apiKeyInput.value = result.openRouterApiKey;
+      statusMessage.textContent = 'API密钥已加载';
+      statusMessage.style.color = 'green';
+      setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+    }
+  });
+
+  // 从存储中加载最近一次的分类词汇提取结果
+  chrome.storage.local.get(['wordCategories'], function(result) {
+    if (result.wordCategories) {
+      displayWordCategories(result.wordCategories, wordCategoriesContainer);
+    }
+  });
+
+  // 保存API密钥
+  saveApiKeyBtn.addEventListener('click', function() {
+    const apiKey = apiKeyInput.value.trim();
+    if (apiKey) {
+      chrome.storage.local.set({openRouterApiKey: apiKey}, function() {
+        statusMessage.textContent = 'API密钥已保存';
+        statusMessage.style.color = 'green';
+        setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+      });
+    } else {
+      statusMessage.textContent = '请输入有效的API密钥';
+      statusMessage.style.color = 'red';
+      setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+    }
+  });
+
+  // 提取分类词汇
+  extractWordsBtn.addEventListener('click', function() {
+    chrome.storage.local.get(['openRouterApiKey'], function(result) {
+      if (!result.openRouterApiKey) {
+        statusMessage.textContent = '请先设置API密钥';
+        statusMessage.style.color = 'red';
+        setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+        return;
+      }
+
+      statusMessage.textContent = '正在提取词汇...';
+      statusMessage.style.color = 'blue';
+
+      extractWords(result.openRouterApiKey).then(categories => {
+        if (categories) {
+          displayWordCategories(categories, wordCategoriesContainer);
+          statusMessage.textContent = '词汇提取成功';
+          statusMessage.style.color = 'green';
+          setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+        } else {
+          statusMessage.textContent = '词汇提取失败';
+          statusMessage.style.color = 'red';
+          setTimeout(() => { statusMessage.textContent = ''; }, 2000);
+        }
+      });
     });
-    return true; // 异步响应需要返回true
-  } else if (request.action === 'toggleHighlight') {
-    const result = toggleHighlight();
-    sendResponse(result);
+  });
+
+  // 切换高亮显示
+  toggleHighlightBtn.addEventListener('click', function() {
+    toggleHighlight();
+  });
+}
+
+// 监听扩展图标点击事件
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === 'toggleSidebar') {
+    sidebar.classList.toggle('hidden');
+    sendResponse({success: true});
   }
 });
+
+// 显示分类词汇列表
+function displayWordCategories(categories, container) {
+  // 清空容器
+  container.innerHTML = '';
+
+  // 定义类别的中文名称
+  const categoryNames = {
+    person: '人名',
+    location: '地名',
+    time: '时间',
+    organization: '组织机构'
+  };
+
+  // 遍历每个类别
+  for (const category in categories) {
+    if (categories[category] && categories[category].length > 0) {
+      // 创建类别容器
+      const categoryDiv = document.createElement('div');
+      categoryDiv.className = 'category';
+
+      // 创建类别标题
+      const titleDiv = document.createElement('div');
+      titleDiv.className = `category-title ${category}`;
+      titleDiv.textContent = `${categoryNames[category]} (${categories[category].length})`;
+      categoryDiv.appendChild(titleDiv);
+
+      // 创建词汇列表容器
+      const wordsDiv = document.createElement('div');
+      wordsDiv.className = 'words-list';
+
+      // 添加词汇
+      categories[category].forEach(item => {
+        const wordSpan = document.createElement('span');
+        wordSpan.className = `word ${category}`;
+        wordSpan.textContent = `${item.word} (${item.count})`;
+
+        // 添加点击事件，复制词汇到剪贴板
+        wordSpan.addEventListener('click', () => {
+          navigator.clipboard.writeText(item.word).then(() => {
+            // 显示复制成功提示
+            const tooltip = document.createElement('div');
+            tooltip.className = 'copy-tooltip';
+            tooltip.textContent = '已复制到剪贴板';
+            document.body.appendChild(tooltip);
+
+            // 2秒后移除提示
+            setTimeout(() => {
+              document.body.removeChild(tooltip);
+            }, 2000);
+          });
+        });
+
+        wordsDiv.appendChild(wordSpan);
+      });
+
+      categoryDiv.appendChild(wordsDiv);
+      container.appendChild(categoryDiv);
+    }
+  }
+}
+
+// 初始化侧边栏事件监听
+initializeEventListeners();
 
 // 提取分类词汇
 async function extractWords(apiKey) {
