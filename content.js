@@ -113,6 +113,7 @@ function initializeEventListeners() {
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'toggleSidebar') {
     sidebar.classList.toggle('hidden');
+    document.body.classList.toggle('wordfairy-sidebar-active');
     sendResponse({success: true});
   }
 });
