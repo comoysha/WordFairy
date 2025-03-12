@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "WordFairy",
   "version": "1.0",
-  "description": "通过readability.js提取网页内容，使用OpenRouter API提取分类词汇并高亮显示",
+  "description": "AI提取分类词汇并高亮显示",
   "permissions": ["activeTab", "storage", "scripting"],
   "action": {
     "default_icon": {
