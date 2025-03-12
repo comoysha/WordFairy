@@ -21,11 +21,7 @@ SmartHighlighter 是一款革命性的 Chrome 扩展，它能够：
 
 ### 安装方法
 
-1. 从 Chrome 网上应用商店安装 [SmartHighlighter](https://chrome.google.com/webstore/detail/comoysha/WordFairy2)
-
-   或者
-
-2. 下载此仓库并手动安装:
+1. 下载此仓库并手动安装:
    - 克隆仓库: `git clone https://github.com/comoysha/WordFairy2.git`
    - 打开Chrome浏览器，进入 `chrome://extensions/`
    - 启用"开发者模式"
