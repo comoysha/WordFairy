@@ -93,3 +93,37 @@
   border-style: solid;
   border-color: #333 transparent transparent transparent;
 }
+
+/* 工具提示样式 */
+.wordFairy-highlight-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 10000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* 重点高亮样式（用于跳转定位） */
+.wordFairy-highlight-focus {
+  animation: wordFairy-pulse 1.5s ease-in-out;
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.8) !important;
+  transform: scale(1.05);
+  z-index: 1000;
+  position: relative;
+}
+
+@keyframes wordFairy-pulse {
+  0% {
+    box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(255, 193, 7, 1);
+  }
+  100% {
+    box-shadow: 0 0 10px rgba(255, 193, 7, 0.8);
+  }
+}

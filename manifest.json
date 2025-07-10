@@ -19,7 +19,14 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": [
+        "js/categoryManager.js",
+        "js/highlighter.js",
+        "js/wordExtractor.js",
+        "js/sidebar.js",
+        "js/eventListeners.js",
+        "content.js"
+      ],
       "css": ["styles/reader.css", "styles/highlight.css"]
     }
   ],
